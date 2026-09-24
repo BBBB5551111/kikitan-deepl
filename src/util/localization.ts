@@ -1,4 +1,18 @@
 export const localization = {
+    speech_recognition_error: {
+        en: "Speech recognition error",
+        jp: "音声認識エラー",
+        cn: "语音识别错误",
+        kr: "음성 인식 오류",
+        tr: "Konuşma tanıma hatası",
+    },
+    speech_recognition_network_error: {
+        en: "Speech recognition error: network. Check your internet connection. WebView2 Runtime 153 has a known bug that causes this error.",
+        jp: "音声認識エラー: network。インターネット接続を確認してください。WebView2 Runtime 153 にはこのエラーが出る既知の不具合があります。",
+        cn: "语音识别错误: network。请检查网络连接。WebView2 Runtime 153 存在导致此错误的已知问题。",
+        kr: "음성 인식 오류: network. 인터넷 연결을 확인하세요. WebView2 Runtime 153에는 이 오류를 일으키는 알려진 버그가 있습니다.",
+        tr: "Konuşma tanıma hatası: network. İnternet bağlantınızı kontrol edin. WebView2 Runtime 153'te bu hataya neden olan bilinen bir hata var.",
+    },
     quickstart_osc: {
         en: "Make sure to enable OSC!",
         jp: "OSCを有効にしてください！",

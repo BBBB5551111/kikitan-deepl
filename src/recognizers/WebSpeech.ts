@@ -21,6 +21,7 @@ export class WebSpeech extends Recognizer {
     jp_omit_questionmark: boolean = false;
     callback: ((result: string[], final: boolean) => void) | null = null
     error_callback: ((error: TranslationError) => void) | null = null
+    recognition_error_callback: ((error: string) => void) | null = null
     translation_engine: TranslationEngine = "deepl";
     api_plan: DeepLApiPlan = "free";
     send_source_on_error: boolean = false;
@@ -71,7 +72,11 @@ export class WebSpeech extends Recognizer {
         }
 
         this.recognition.onerror = (e) => {
-            if (e.message.trim().length != 0) error("[WEBSPEECH] Error: " + e.message)
+            // "no-speech" and "aborted" are routine while listening continuously.
+            if (e.error != "no-speech" && e.error != "aborted") {
+                error(`[WEBSPEECH] Error: ${e.error}${e.message.trim().length != 0 ? " - " + e.message : ""}`)
+                this.recognition_error_callback?.(e.error)
+            }
 
             if (this.running) {
                 setTimeout(() => {
@@ -169,6 +174,8 @@ export class WebSpeech extends Recognizer {
         this.callback = callback
 
         this.recognition.onresult = async (event) => {
+            this.recognition_error_callback?.("")
+
             if (event.results.length > 0) {
                 let transcript = event.results[event.results.length - 1][0].transcript.trim()
                 const isFinal = event.results[event.results.length - 1].isFinal
@@ -211,5 +218,9 @@ export class WebSpeech extends Recognizer {
 
     onError(callback: (error: TranslationError) => void) {
         this.error_callback = callback;
+    }
+
+    onRecognitionError(callback: (error: string) => void) {
+        this.recognition_error_callback = callback;
     }
 }

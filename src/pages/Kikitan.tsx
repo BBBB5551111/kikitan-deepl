@@ -76,6 +76,7 @@ export default function Kikitan({
     const [detection, setDetection] = React.useState<string>("");
     const [translated, setTranslated] = React.useState("");
     const [translationError, setTranslationError] = React.useState("");
+    const [recognitionError, setRecognitionError] = React.useState("");
     const [desktopResult] = React.useState("");
 
     const [defaultMicrophone, setDefaultMicrophone] = React.useState(
@@ -217,6 +218,8 @@ export default function Kikitan({
             cfg.deepl_settings.send_source_on_error,
         );
         setTranslationError("");
+        setRecognitionError("");
+        webSpeech.onRecognitionError(setRecognitionError);
         webSpeech.onError((translationError: TranslationError) => {
             setTranslationError(translationError.message ?? "Translation failed.");
         });
@@ -693,6 +696,13 @@ export default function Kikitan({
                                 } ${srStatus ? "" : "bg-gray-400"}`}
                         >
                             <p className="align-middle">{detection}</p>
+                            {recognitionError.length > 0 && (
+                                <p className="text-sm text-red-500 mt-2">
+                                    {recognitionError == "network"
+                                        ? localization.speech_recognition_network_error[lang]
+                                        : `${localization.speech_recognition_error[lang]}: ${recognitionError}`}
+                                </p>
+                            )}
                         </div>
                         <div className="flex">
                             <Select
