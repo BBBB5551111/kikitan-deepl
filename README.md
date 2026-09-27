@@ -48,12 +48,40 @@ WindowsのMicrosoft Edge WebView2 Runtimeが`153`に自動更新されると、�
 
 エクスプローラーで`C:\Program Files (x86)\Microsoft\EdgeWebView\Application`を開きます。`153`で始まるフォルダがあれば該当します。WebView2は「インストールされているアプリ」の一覧に表示されないことがあります。
 
-**2. 対処する**
+**2. 対処する（おすすめ：レジストリで設定）**
+
+この方法では、いつものショートカットから起動するだけでKikitanが152を使います。
 
 1. [WebView2のダウンロードページ](https://developer.microsoft.com/microsoft-edge/webview2)の「Fixed Version（修正バージョン）」で`152.0.4191.62`と`x64`を選び、「ダウンロード」フォルダに保存します。
 2. Kikitanを完全に終了します。
-3. スタートボタンを右クリックし、「ターミナル (管理者)」を開きます。
+3. スタートボタンを右クリックし、「ターミナル (管理者)」を開きます。タブに「PowerShell」と表示されていることを確認してください。
 4. 次のブロックを丸ごと貼り付けてEnterを押します。
+
+```powershell
+$cab = Get-ChildItem "$env:USERPROFILE\Downloads","$env:USERPROFILE\OneDrive\Downloads","$env:USERPROFILE\Desktop" -Filter "Microsoft.WebView2.FixedVersionRuntime.152*.cab" -ErrorAction SilentlyContinue | Select-Object -First 1
+"1. cab: $($cab.FullName)"
+if (-not (Test-Path C:\WebView2Fixed\Microsoft.WebView2.FixedVersionRuntime.152*)) {
+  if (-not $cab) { "→ 152 の .cab が見つかりません。ダウンロードフォルダに置いてください"; return }
+  New-Item -ItemType Directory -Force C:\WebView2Fixed | Out-Null
+  expand.exe $cab.FullName -F:* C:\WebView2Fixed | Out-Null
+}
+icacls C:\WebView2Fixed /grant "*S-1-15-2-2:(OI)(CI)(RX)" /T /Q | Out-Null
+icacls C:\WebView2Fixed /grant "*S-1-15-2-1:(OI)(CI)(RX)" /T /Q | Out-Null
+$wv = (Get-ChildItem C:\WebView2Fixed -Directory -Filter "Microsoft.WebView2.FixedVersionRuntime.152*" | Select-Object -First 1).FullName
+"2. 展開先: $wv"
+$key = "HKCU:\Software\Policies\Microsoft\Edge\WebView2\BrowserExecutableFolder"
+New-Item -Path $key -Force | Out-Null
+New-ItemProperty -Path $key -Name "kikitan-translator-deepl.exe" -Value $wv -PropertyType String -Force | Out-Null
+"3. 設定完了: いつものショートカットから Kikitan を起動してください"
+```
+
+5. 「2. 展開先:」に`C:\WebView2Fixed\Microsoft.WebView2.FixedVersionRuntime.152.0.4191.62.x64`と表示されれば成功です。いつものショートカットからKikitanを起動してください。
+
+152が使われているかは、タスクマネージャーの「詳細」タブで`msedgewebview2.exe`を右クリックし、「ファイルの場所を開く」で`C:\WebView2Fixed\…`が開くかで確認できます。
+
+**別の方法：起動用の.batを作る**
+
+レジストリを変更したくない場合は、上の手順4の代わりに次を実行します。デスクトップに`Kikitan起動.bat`が作られるので、以後はそこから起動します。通常のショートカットから起動すると153が使われ、声を拾いません。デスクトップがOneDrive内にある環境や、Windowsセキュリティの「コントロールされたフォルダー アクセス」が有効な環境では、.batが作成されないことがあります。その場合はレジストリの方法を使ってください。
 
 ```powershell
 $cab = Get-ChildItem "$env:USERPROFILE\Downloads\Microsoft.WebView2.FixedVersionRuntime.152.*.x64.cab" | Select-Object -First 1
@@ -72,11 +100,19 @@ else {
 }
 ```
 
-5. 以後はデスクトップの`Kikitan起動.bat`から起動します。通常のショートカットから起動すると153が使われ、声を拾いません。
-
 **3. Microsoftが修正したあと**
 
-手順1のフォルダ名が153より新しくなったら、通常のショートカットから起動して試してください。声を拾えれば、`Kikitan起動.bat`と`C:\WebView2Fixed`は削除できます。
+手順1のフォルダ名が153より新しくなったら、152の指定を外して試してください。
+
+- レジストリの方法を使った場合は、PowerShellで次を実行します。
+
+  ```powershell
+  Remove-ItemProperty "HKCU:\Software\Policies\Microsoft\Edge\WebView2\BrowserExecutableFolder" -Name "kikitan-translator-deepl.exe"
+  ```
+
+- .batの方法を使った場合は、通常のショートカットから起動します。
+
+声を拾えれば、`C:\WebView2Fixed`と`Kikitan起動.bat`は削除できます。
 
 ## Translation engine behavior
 
